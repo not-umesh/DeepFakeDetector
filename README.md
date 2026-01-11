@@ -5,6 +5,7 @@ An AI-powered web application that detects whether a face in an image is **real*
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.10+-green.svg)
 ![TensorFlow](https://img.shields.io/badge/TensorFlow.js-Enabled-orange.svg)
+![Security](https://img.shields.io/badge/OWASP-Hardened-green.svg)
 
 ---
 
@@ -17,7 +18,7 @@ An AI-powered web application that detects whether a face in an image is **real*
 | 🔍 **Quick Scan** | Browser-based detection using face-api.js |
 | ⚡ **Pro Analysis** | CLIP ViT-L/14 AI model for higher accuracy |
 | 🎨 **Modern UI** | Dark glassmorphism theme with animations |
-| 🔒 **Privacy First** | Quick Scan runs 100% in your browser |
+| 🔒 **Security First** | Rate limiting, input validation, OWASP headers |
 
 ---
 
@@ -62,7 +63,13 @@ This will:
 - Install all dependencies (PyTorch, Flask, CLIP)
 - Set up the required directories
 
-#### Step 3: Start the Pro Analysis server
+#### Step 3: Configure environment (optional)
+```bash
+cp .env.example .env
+# Edit .env to customize settings
+```
+
+#### Step 4: Start the Pro Analysis server
 ```bash
 source venv/bin/activate
 python server.py
@@ -74,8 +81,46 @@ You should see:
 🚀 Starting server on http://localhost:5002
 ```
 
-#### Step 4: Open the web app
+#### Step 5: Open the web app
 Open `index.html` in your browser. The **Pro Analysis** button should now show as active with a green status indicator!
+
+---
+
+## 🔒 Security Features
+
+This project follows **OWASP best practices** for web application security:
+
+### Rate Limiting
+- IP-based sliding window algorithm
+- 30 requests/minute default (configurable)
+- Burst protection (5 requests/5 seconds)
+- Graceful 429 responses with `Retry-After` header
+
+### Input Validation
+- Schema-based validation on all endpoints
+- Strict type checking
+- File size limits (10MB default)
+- MIME type validation
+- Rejects unexpected fields
+
+### Security Headers
+```
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+Content-Security-Policy: default-src 'self'
+```
+
+### Environment Configuration
+All sensitive settings loaded from environment variables - no hardcoded secrets!
+
+```bash
+# Copy example config
+cp backend/.env.example backend/.env
+
+# Edit as needed
+nano backend/.env
+```
 
 ---
 
@@ -89,9 +134,10 @@ DeepFakeDetector/
 ├── detector.js         # Browser-based face analysis
 ├── README.md           # You're reading this!
 └── backend/
-    ├── server.py       # Flask API with CLIP model
+    ├── server.py       # Flask API with CLIP model (security hardened)
     ├── requirements.txt # Python dependencies
     ├── setup.sh        # Auto-setup script
+    ├── .env.example    # Example environment config
     └── pretrained_weights/  # (Optional) Custom weights
 ```
 
@@ -115,6 +161,19 @@ DeepFakeDetector/
 
 ---
 
+## ⚙️ Configuration Options
+
+| Environment Variable | Default | Description |
+|---------------------|---------|-------------|
+| `DEEPFAKE_PORT` | 5002 | Server port |
+| `RATE_LIMIT_PER_MINUTE` | 30 | Max requests per minute |
+| `RATE_LIMIT_BURST` | 5 | Max burst requests |
+| `MAX_IMAGE_SIZE_MB` | 10 | Max image upload size |
+| `DEEPFAKE_API_KEY` | (none) | Optional API key for auth |
+| `USE_GPU` | true | Use GPU if available |
+
+---
+
 ## 🔧 Troubleshooting
 
 ### "Port already in use" error
@@ -132,35 +191,29 @@ pip install certifi
 ### Pro Analysis button stays disabled
 Make sure the backend server is running and check the terminal for errors.
 
----
-
-## 📊 How Detection Works
-
-### Quick Scan (Browser-based)
-Analyzes facial features for signs of AI generation:
-- Facial symmetry (AI faces are often too perfect)
-- Eye pattern analysis (identical eyes are suspicious)
-- Facial proportions (golden ratio detection)
-- Expression naturalness
-
-### Pro Analysis (CLIP Model)
-Uses OpenAI's CLIP vision model to analyze the entire image for AI-generated artifacts that are invisible to simpler methods.
+### Rate limit exceeded (429 error)
+Wait for the `Retry-After` time indicated in the response, or adjust `RATE_LIMIT_PER_MINUTE` in your `.env` file.
 
 ---
 
-## 📝 API Endpoints (Pro Mode)
+## 📊 API Endpoints (Pro Mode)
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/health` | GET | Check server status |
-| `/api/analyze` | POST | Analyze base64 image |
-| `/api/analyze-file` | POST | Analyze uploaded file |
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `/api/health` | GET | No | Check server status |
+| `/api/analyze` | POST | Optional | Analyze base64 image |
+| `/api/analyze-file` | POST | Optional | Analyze uploaded file |
 
-Example:
+### Example Request
 ```bash
 curl http://localhost:5002/api/health
 # {"model_loaded": true, "model_name": "CLIP-ViT-L/14", "status": "online"}
 ```
+
+### Rate Limit Headers
+All responses include:
+- `X-RateLimit-Limit`: Maximum requests per minute
+- `X-RateLimit-Remaining`: Remaining requests
 
 ---
 
@@ -194,4 +247,8 @@ MIT License - feel free to use this project for learning and personal projects!
 
 ---
 
-Made with ❤️ for AI education and awareness
+<p align="center">
+  <code>&lt;/&gt;</code> by <b>Umesh</b> 
+  <br>
+  <sub>// console.log("Built with ☕ and curiosity")</sub>
+</p>

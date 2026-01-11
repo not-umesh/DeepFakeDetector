@@ -975,6 +975,27 @@ body {
     border-color: #f59e0b;
 }
 
+/* ===== Watermark ===== */
+.watermark {
+    margin-top: 16px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    opacity: 0.6;
+    transition: opacity var(--transition-normal);
+}
+
+.watermark:hover {
+    opacity: 1;
+}
+
+.watermark-name {
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
 /* ===== Utility Classes ===== */
 .hidden {
     display: none !important;
