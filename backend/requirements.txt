@@ -1,0 +1,20 @@
+# DeepFake Detector - Pro Backend Dependencies
+
+# Core Flask
+flask>=2.3.0
+flask-cors>=4.0.0
+
+# PyTorch (CPU version - use torch with CUDA for GPU)
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Image processing
+Pillow>=10.0.0
+numpy>=1.24.0
+
+# CLIP model (optional but recommended)
+# Install separately: pip install git+https://github.com/openai/CLIP.git
+# or: pip install clip-by-openai
+
+# For development
+python-dotenv>=1.0.0

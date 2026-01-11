@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepFake Detector - AI Face Authentication</title>
+    <meta name="description"
+        content="Free AI-powered deepfake detection tool. Analyze images to determine if a face is AI-generated or real.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- TensorFlow.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+
+    <!-- Face-api.js -->
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation">
+        <div class="gradient-sphere sphere-1"></div>
+        <div class="gradient-sphere sphere-2"></div>
+        <div class="gradient-sphere sphere-3"></div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
+                            stroke="currentColor" stroke-width="2" />
+                        <circle cx="9" cy="10" r="1.5" fill="currentColor" />
+                        <circle cx="15" cy="10" r="1.5" fill="currentColor" />
+                        <path d="M8 14s1.5 2 4 2 4-2 4-2" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" />
+                    </svg>
+                </div>
+                <h1>DeepFake<span>Detector</span></h1>
+            </div>
+            <p class="tagline">AI-Powered Face Authentication</p>
+
+            <!-- Backend Status Indicator -->
+            <div class="backend-status" id="backendStatus">
+                <div class="status-dot offline" id="statusDot"></div>
+                <span id="statusText">Pro Server: Checking...</span>
+            </div>
+        </header>
+
+        <!-- Main Card -->
+        <main class="main-card">
+            <!-- Analysis Mode Toggle -->
+            <div class="mode-toggle" id="modeToggle">
+                <button class="mode-btn active" id="basicModeBtn" data-mode="basic">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+                        <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                    <span>Quick Scan</span>
+                    <small>Browser-based</small>
+                </button>
+                <button class="mode-btn" id="proModeBtn" data-mode="pro">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <span>Pro Analysis</span>
+                    <small>CLIP AI Model</small>
+                    <div class="pro-badge">PRO</div>
+                </button>
+            </div>
+
+            <!-- Upload Section -->
+            <section class="upload-section" id="uploadSection">
+                <div class="dropzone" id="dropzone">
+                    <div class="dropzone-content">
+                        <div class="upload-icon">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                                <polyline points="17,8 12,3 7,8" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                                <line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                        <h3>Drop your image here</h3>
+                        <p>or click to browse</p>
+                        <span class="file-types">Supports: JPG, PNG, WebP</span>
+                    </div>
+                    <input type="file" id="fileInput" accept="image/*" hidden>
+                </div>
+
+                <div class="divider">
+                    <span>or</span>
+                </div>
+
+                <button class="webcam-btn" id="webcamBtn">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M23 7l-7 5 7 5V7z" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <rect x="1" y="5" width="15" height="14" rx="2" stroke="currentColor" stroke-width="2" />
+                    </svg>
+                    <span>Use Webcam</span>
+                </button>
+            </section>
+
+            <!-- Webcam Section (hidden by default) -->
+            <section class="webcam-section hidden" id="webcamSection">
+                <div class="webcam-container">
+                    <video id="webcamVideo" autoplay playsinline></video>
+                    <canvas id="webcamCanvas" hidden></canvas>
+                    <div class="webcam-overlay">
+                        <div class="face-guide"></div>
+                    </div>
+                </div>
+                <div class="webcam-controls">
+                    <button class="capture-btn" id="captureBtn">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+                            <circle cx="12" cy="12" r="6" fill="currentColor" />
+                        </svg>
+                        <span>Capture</span>
+                    </button>
+                    <button class="back-btn" id="backBtn">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <span>Back</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Analysis Section -->
+            <section class="analysis-section hidden" id="analysisSection">
+                <div class="image-preview-container">
+                    <img id="previewImage" alt="Uploaded image preview">
+                    <div class="face-detection-overlay" id="faceOverlay"></div>
+                </div>
+
+                <!-- Loading State -->
+                <div class="loading-state" id="loadingState">
+                    <div class="scanner">
+                        <div class="scanner-line"></div>
+                    </div>
+                    <p id="loadingText">Analyzing facial features...</p>
+                    <div class="loading-bar">
+                        <div class="loading-progress"></div>
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div class="results hidden" id="results">
+                    <div class="result-card" id="resultCard">
+                        <div class="result-icon" id="resultIcon"></div>
+                        <h2 id="resultTitle">Analyzing...</h2>
+                        <p class="result-subtitle" id="resultSubtitle"></p>
+
+                        <!-- Analysis Mode Badge -->
+                        <div class="analysis-badge" id="analysisBadge">
+                            <span id="analysisModeText">Quick Scan</span>
+                        </div>
+
+                        <div class="confidence-meter">
+                            <div class="confidence-label">
+                                <span>Confidence Level</span>
+                                <span id="confidenceValue">0%</span>
+                            </div>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" id="confidenceFill"></div>
+                            </div>
+                        </div>
+
+                        <div class="analysis-details" id="analysisDetails">
+                            <!-- Filled by JavaScript -->
+                        </div>
+                    </div>
+
+                    <button class="analyze-new-btn" id="analyzeNewBtn">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M23 4v6h-6M1 20v-6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                            <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <span>Analyze Another Image</span>
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Info Section -->
+        <section class="info-section">
+            <div class="info-card">
+                <div class="info-icon">🔍</div>
+                <h4>Quick Scan</h4>
+                <p>Browser-based facial analysis using heuristic detection</p>
+            </div>
+            <div class="info-card pro">
+                <div class="info-icon">⚡</div>
+                <h4>Pro Analysis</h4>
+                <p>CLIP ViT-L/14 AI model for highly accurate detection</p>
+            </div>
+            <div class="info-card">
+                <div class="info-icon">🔒</div>
+                <h4>Privacy First</h4>
+                <p>Quick Scan runs locally. Pro uses your local server only.</p>
+            </div>
+        </section>
+
+        <!-- Pro Setup Instructions (shown when Pro is offline) -->
+        <section class="setup-instructions hidden" id="setupInstructions">
+            <h4>🚀 Enable Pro Analysis</h4>
+            <p>Run these commands to start the Pro server:</p>
+            <pre><code>cd backend
+chmod +x setup.sh && ./setup.sh
+source venv/bin/activate
+python server.py</code></pre>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Built with TensorFlow.js, Face-API.js & CLIP</p>
+            <p class="disclaimer">⚠️ This is an educational MVP. Results may not be 100% accurate.</p>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="detector.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

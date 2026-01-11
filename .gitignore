@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environments
+venv/
+env/
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Model files (too large for git)
+*.pth
+*.pt
+*.onnx
+backend/pretrained_weights/*.pth
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
